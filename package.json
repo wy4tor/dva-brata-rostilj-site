@@ -1,0 +1,13 @@
+{
+  "name": "dva-brata-rostilj-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Landing page za Dva Brata Roštilj",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "latest"
+  }
+}
