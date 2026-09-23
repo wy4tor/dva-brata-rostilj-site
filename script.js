@@ -174,8 +174,41 @@ filters.forEach(button => {
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let lenis = null;
 
+// Keep the floating call out of sections that already offer a call action,
+// and fade it before it can cover the footer.
+const stickyCall = document.querySelector('.sticky-call');
+if (stickyCall) {
+  const callSections = new Set(
+    [...document.querySelectorAll('main a[href^="tel:"]')]
+      .map(link => link.closest('section'))
+      .filter(Boolean)
+  );
+  const footer = document.querySelector('.site-footer');
+  const visibleTargets = new Set();
+  const callObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) visibleTargets.add(entry.target);
+      else visibleTargets.delete(entry.target);
+    });
+    const hidden = visibleTargets.size > 0;
+    stickyCall.classList.toggle('is-hidden', hidden);
+    stickyCall.inert = hidden;
+    stickyCall.setAttribute('aria-hidden', String(hidden));
+  }, { rootMargin: '-80px 0px 80px 0px', threshold: 0 });
+  callSections.forEach(section => callObserver.observe(section));
+  if (footer) callObserver.observe(footer);
+}
+
+const backToTop = document.querySelector('.back-to-top');
+
 function setHeaderState(scrollY) {
   header.classList.toggle('scrolled', scrollY > 24);
+  if (backToTop) {
+    const hidden = scrollY < 400;
+    backToTop.classList.toggle('is-hidden', hidden);
+    backToTop.inert = hidden;
+    backToTop.setAttribute('aria-hidden', String(hidden));
+  }
 }
 
 function closeNav() {
@@ -187,6 +220,11 @@ function scrollToHash(hash, immediate = false) {
   if (!hash || hash === '#') return;
   const target = document.querySelector(hash);
   if (!target) return;
+  if (hash === '#top') {
+    if (lenis) lenis.scrollTo(0, { immediate, duration: 1.35 });
+    else window.scrollTo({ top: 0, behavior: immediate || reduceMotion ? 'auto' : 'smooth' });
+    return;
+  }
   const offset = -88;
   if (lenis) {
     lenis.scrollTo(target, { offset, immediate, duration: 1.35 });
